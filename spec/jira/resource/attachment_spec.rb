@@ -73,6 +73,15 @@ describe JIRA::Resource::Attachment do
     end
     let(:attachment_file_contents) { 'file contents' }
     let(:attachment_url) { 'https://localhost:2990/secure/attachment/32323/myfile.txt' }
+    let(:issue_id) { 3232 }
+    let(:issue) { JIRA::Resource::Issue.new(client, attrs: {'id' => issue_id}) }
+    subject(:attachment) do
+      JIRA::Resource::Attachment.new(
+        client,
+        issue: issue,
+        attrs: { 'author' => { 'foo' => 'bar' } }
+      )
+    end
 
     before do
       stub_request(:get, attachment_url).to_return(body: attachment_file_contents)
@@ -125,6 +134,8 @@ describe JIRA::Resource::Attachment do
       end
 
       it 'successfully update the attachment' do
+        expect(client).to receive(:post_multipart).and_return(response).with("/jira/rest/api/2/issue/#{issue.id}/attachments", anything, anything)
+
         subject
 
         expect(attachment.filename).to eq file_name
